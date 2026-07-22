@@ -3,15 +3,13 @@ import express from "express";
 import protect from "../middleware/auth.js";
 
 import {
-
-downloadResumePDF
-
-} from "../controllers/pdf.controller.js";
+  downloadResumeDocx,
+} from "../controllers/docx.controller.js";
 
 const router = express.Router();
 
 router.use(protect);
 
-router.get("/:id", downloadResumePDF);
+router.get("/:id", downloadResumeDocx);
 
 export default router;

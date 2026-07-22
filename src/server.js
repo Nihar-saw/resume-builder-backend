@@ -1,0 +1,24 @@
+import app from "./app.js";
+import connectDB from "./config/db.js";
+import { env } from "./config/env.js";
+
+const startServer = async () => {
+
+    await connectDB();
+
+    app.listen(env.PORT, () => {
+
+        console.log(`
+====================================
+ Resume Builder Backend Started
+====================================
+ Environment : ${env.NODE_ENV}
+ Port        : ${env.PORT}
+====================================
+`);
+
+    });
+
+};
+
+startServer();

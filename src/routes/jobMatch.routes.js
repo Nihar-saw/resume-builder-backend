@@ -4,14 +4,14 @@ import protect from "../middleware/auth.js";
 
 import {
 
-downloadResumePDF
+analyzeJobMatchController
 
-} from "../controllers/pdf.controller.js";
+} from "../controllers/jobMatch.controller.js";
 
 const router = express.Router();
 
 router.use(protect);
 
-router.get("/:id", downloadResumePDF);
+router.post("/", analyzeJobMatchController);
 
 export default router;

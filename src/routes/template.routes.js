@@ -4,14 +4,14 @@ import protect from "../middleware/auth.js";
 
 import {
 
-downloadResumePDF
+changeTemplate
 
-} from "../controllers/pdf.controller.js";
+} from "../controllers/template.controller.js";
 
-const router = express.Router();
+const router=express.Router();
 
 router.use(protect);
 
-router.get("/:id", downloadResumePDF);
+router.patch("/:id",changeTemplate);
 
 export default router;
