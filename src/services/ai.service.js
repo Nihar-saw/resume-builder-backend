@@ -2,18 +2,26 @@ import ollama from "../config/ollama.js";
 import { env } from "../config/env.js";
 
 export const askAI = async (prompt) => {
-  const { data } = await ollama.post("/api/chat", {
-    model: env.OLLAMA_MODEL,
-    stream: false,
-    messages: [
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-  });
+  try {
+    const model = env.OLLAMA_MODEL || "gemma";
+    const { data } = await ollama.post("/api/chat", {
+      model,
+      stream: false,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
 
-  return data.message.content;
+    return data.message.content;
+  } catch (error) {
+    console.error("Ollama Connection Error:", error.message);
+    throw new Error(
+      `AI Service connection failed. Please ensure Ollama is running locally at ${env.OLLAMA_URL || "http://localhost:11434"} and that the model "${env.OLLAMA_MODEL || "gemma"}" is installed (run: \`ollama run ${env.OLLAMA_MODEL || "gemma"}\`).`
+    );
+  }
 };
 
 export const parseResume = async (resumeText) => {

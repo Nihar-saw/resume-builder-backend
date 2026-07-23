@@ -40,10 +40,26 @@ portfolio
 
 export const getPublicResume = async (req, res) => {
   try {
-    // Fetch the public portfolio/resume by slug or id
-    res.status(200).json({
+    const portfolio = await Portfolio.findOne({
+      slug: req.params.slug,
+      isPublic: true,
+    }).populate("resume");
+
+    if (!portfolio) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found.",
+      });
+    }
+
+    portfolio.views++;
+    await portfolio.save();
+
+    res.json({
       success: true,
-      message: "Public resume endpoint",
+      resume: portfolio.resume,
+      qrCode: portfolio.qrCode,
+      views: portfolio.views,
     });
   } catch (err) {
     res.status(500).json({
