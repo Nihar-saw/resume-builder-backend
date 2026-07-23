@@ -43,7 +43,13 @@ export const getPublicResume = async (req, res) => {
     const portfolio = await Portfolio.findOne({
       slug: req.params.slug,
       isPublic: true,
-    }).populate("resume");
+    }).populate({
+      path: "resume",
+      populate: {
+        path: "user",
+        select: "avatar",
+      },
+    });
 
     if (!portfolio) {
       return res.status(404).json({
