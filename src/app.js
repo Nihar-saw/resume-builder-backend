@@ -18,7 +18,10 @@ import pdfRoutes from "./routes/pdf.routes.js";
 import templateRoutes from "./routes/template.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 import docxRoutes from "./routes/docx.routes.js";
-import globalErrorHandler from "./middleware/globalErrorHandler.js";
+import emailRoutes from "./routes/email.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
+import portfolioRoutes from "./routes/portfolio.routes.js";
+
 
 const app = express();
 
@@ -47,6 +50,9 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/portfolio", portfolioRoutes);
+app.use("/api/email", emailRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/version", versionRoutes);
 app.use("/api/ats", atsRoutes);
@@ -57,6 +63,7 @@ app.use("/api/job-match", jobMatchRoutes);
 app.use("/api/pdf", pdfRoutes);
 app.use("/api/docx", docxRoutes);
 app.use("/api/templates", templateRoutes);
+
 
 app.use(notFound);
 

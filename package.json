@@ -33,9 +33,12 @@
     "mongoose": "^9.8.0",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
+    "nanoid": "^5.1.16",
     "nodemailer": "^9.0.3",
-    "pdf-parse": "^2.4.5",
+    "otp-generator": "^4.0.1",
+    "pdf-parse": "^1.1.1",
     "pdfkit": "^0.19.1",
+    "qrcode": "^1.5.4",
     "uuid": "^14.0.1"
   },
   "devDependencies": {

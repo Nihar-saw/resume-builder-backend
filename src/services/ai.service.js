@@ -117,68 +117,150 @@ return await askAI(prompt);
 
 };
 
+export const improveSummary = async (summary, jobTitle) => {
+
+  const prompt = `
+You are an expert ATS Resume Writer.
+
+Rewrite this professional summary.
+
+Job Role:
+${jobTitle}
+
+Summary:
+${summary}
+
+Rules:
+- Maximum 100 words
+- ATS Friendly
+- Professional
+- Strong action verbs
+`;
+
+  return await askAI(prompt);
+};
+
+export const improveExperience = async (
+  experience,
+  jobTitle
+) => {
+
+  const prompt = `
+Rewrite the following resume bullet.
+
+Use STAR method.
+
+Job Role:
+${jobTitle}
+
+Bullet:
+${experience}
+`;
+
+  return await askAI(prompt);
+};
+
+export const suggestSkills = async (
+  resume,
+  jobDescription
+) => {
+
+  const prompt = `
+Compare the resume and the job description.
+
+Return ONLY the missing technical skills.
+
+Resume:
+${resume}
+
+Job Description:
+${jobDescription}
+`;
+
+  return await askAI(prompt);
+};
+
+export const interviewQuestions = async (
+  resume,
+  jobTitle
+) => {
+
+  const prompt = `
+Generate 10 interview questions.
+
+Role:
+${jobTitle}
+
+Resume:
+${resume}
+
+Mix technical and behavioral questions.
+`;
+
+  return await askAI(prompt);
+};
+
+export const createCoverLetter = async (
+  resume,
+  company,
+  jobTitle
+) => {
+  const prompt = `
+You are an expert cover letter writer.
+
+Write a professional ATS-friendly cover letter.
+
+Company:
+${company}
+
+Job Title:
+${jobTitle}
+
+Resume:
+${resume}
+
+Requirements:
+- Professional tone
+- Around 300 words
+- Highlight relevant experience
+- End with a strong closing paragraph
+`;
+
+  return await askAI(prompt);
+};
+
 export const analyzeJobMatch = async (
   resume,
   jobDescription
 ) => {
 
-const prompt = `
+  const prompt = `
+You are an expert ATS recruiter.
 
-You are an expert ATS Recruiter.
-
-Compare this resume with the job description.
+Compare the resume with the job description.
 
 Return ONLY valid JSON.
 
 Format:
-
 {
-"matchScore":0,
-
-"matchingSkills":[
-
-],
-
-"missingSkills":[
-
-],
-
-"matchingKeywords":[
-
-],
-
-"missingKeywords":[
-
-],
-
-"experienceGap":"",
-
-"suggestedProjects":[
-
-],
-
-"resumeImprovements":[
-
-],
-
-"interviewTips":[
-
-],
-
-"hiringRecommendation":""
-
+  "matchScore": 0,
+  "matchingSkills": [],
+  "missingSkills": [],
+  "matchingKeywords": [],
+  "missingKeywords": [],
+  "experienceGap": "",
+  "suggestedProjects": [],
+  "resumeImprovements": [],
+  "interviewTips": [],
+  "hiringRecommendation": ""
 }
 
-Resume
-
+Resume:
 ${resume}
 
-Job Description
-
+Job Description:
 ${jobDescription}
-
 `;
 
-return await askAI(prompt);
-
+  return await askAI(prompt);
 };
