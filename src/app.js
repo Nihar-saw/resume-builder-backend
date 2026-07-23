@@ -70,7 +70,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // 404 Route
-app.use("*", (req, res) => {
+app.use("*path", (req, res) => {
   res.status(404).json({
     success: false,
     message: "Route not found",

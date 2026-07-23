@@ -43,3 +43,21 @@ message:"OTP Sent"
 });
 
 };
+
+export const verifyOTPController = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Your OTP verification logic here
+
+    res.json({
+      success: true,
+      message: "OTP verified successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};

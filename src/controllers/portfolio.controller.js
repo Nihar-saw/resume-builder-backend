@@ -37,3 +37,18 @@ portfolio
 });
 
 };
+
+export const getPublicResume = async (req, res) => {
+  try {
+    // Fetch the public portfolio/resume by slug or id
+    res.status(200).json({
+      success: true,
+      message: "Public resume endpoint",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
