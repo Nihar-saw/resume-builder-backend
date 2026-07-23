@@ -6,6 +6,7 @@ import {
   createCoverLetter,
   suggestSkills,
   interviewQuestions,
+  generateResumeFromPrompt,
 } from "../services/ai.service.js";
 
 /**
@@ -130,5 +131,28 @@ export const interviewController = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     result,
+  });
+});
+
+/**
+ * @desc Generate Entire Resume from Prompt
+ * @route POST /api/ai/generate
+ * @access Private
+ */
+export const generateResumeFromPromptController = catchAsync(async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!prompt) {
+    return res.status(400).json({
+      success: false,
+      message: "Prompt is required.",
+    });
+  }
+
+  const result = await generateResumeFromPrompt(prompt);
+
+  res.status(200).json({
+    success: true,
+    resume: result,
   });
 });

@@ -8,6 +8,7 @@ import {
   coverLetterController,
   skillsController,
   interviewController,
+  generateResumeFromPromptController,
 } from "../controllers/ai.controller.js";
 
 const router = express.Router();
@@ -37,6 +38,9 @@ router.post("/skills", skillsController);
 */
 
 router.post("/cover-letter", coverLetterController);
+
+// Generate whole resume from short text prompt
+router.post("/generate", generateResumeFromPromptController);
 
 /*
 | Interview Preparation
