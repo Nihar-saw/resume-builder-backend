@@ -5,37 +5,45 @@ import Portfolio from "../models/Portfolio.js";
 import { generateQRCode } from "../services/qr.service.js";
 
 export const createPortfolio = async(req,res)=>{
+  try {
+    const {resumeId}=req.body;
+    if (!resumeId) {
+      return res.status(400).json({
+        success: false,
+        message: "Resume ID is required."
+      });
+    }
 
-const {resumeId}=req.body;
+    const slug=nanoid(8);
+    const url=`${process.env.CLIENT_URL || "http://localhost:5173"}/r/${slug}`;
+    const qr=await generateQRCode(url);
 
-const slug=nanoid(8);
+    // Upsert or find-existing to prevent duplicate index exceptions
+    let portfolio = await Portfolio.findOne({ resume: resumeId });
+    if (portfolio) {
+      portfolio.qrCode = qr;
+      await portfolio.save();
+    } else {
+      portfolio = await Portfolio.create({
+        user: req.user._id,
+        resume: resumeId,
+        slug,
+        qrCode: qr,
+        isPublic: true
+      });
+    }
 
-const url=`${process.env.CLIENT_URL}/r/${slug}`;
-
-const qr=await generateQRCode(url);
-
-const portfolio=await Portfolio.create({
-
-user:req.user._id,
-
-resume:resumeId,
-
-slug,
-
-qrCode:qr,
-
-isPublic:true
-
-});
-
-res.json({
-
-success:true,
-
-portfolio
-
-});
-
+    res.json({
+      success:true,
+      portfolio
+    });
+  } catch (error) {
+    console.error("Create Portfolio Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal server error."
+    });
+  }
 };
 
 export const getPublicResume = async (req, res) => {
@@ -43,13 +51,9 @@ export const getPublicResume = async (req, res) => {
     const portfolio = await Portfolio.findOne({
       slug: req.params.slug,
       isPublic: true,
-    }).populate({
-      path: "resume",
-      populate: {
-        path: "user",
-        select: "avatar",
-      },
-    });
+    })
+      .populate("resume")
+      .populate("user", "avatar");
 
     if (!portfolio) {
       return res.status(404).json({
@@ -64,6 +68,7 @@ export const getPublicResume = async (req, res) => {
     res.json({
       success: true,
       resume: portfolio.resume,
+      user: portfolio.user,
       qrCode: portfolio.qrCode,
       views: portfolio.views,
     });
