@@ -121,8 +121,23 @@ Rules:
 `;
     return await askAI(prompt);
   } catch (error) {
-    console.warn("Ollama connection failed. Using simulated summary improvement.");
-    return `Results-driven ${jobTitle} with a proven track record of optimizing application performance and leading developer teams. Experienced in building scalable APIs and integrating third-party services. Passionate about engineering clean, maintainable code architectures that exceed client standards.`;
+    console.warn("Ollama connection failed. Using dynamic simulated summary.");
+    const title = (jobTitle || "").toLowerCase();
+    const isMarketing = /market|sale|brand/i.test(title);
+    const isDesign = /design|ui|ux|artist|creative/i.test(title);
+    const isManager = /manager|lead|director/i.test(title);
+    
+    if (isMarketing) {
+      return `Results-driven Marketing Specialist with a proven track record of designing high-impact digital campaigns and scaling brand awareness. Skilled in SEO content strategy, market analytics, and driving customer acquisition rates by over 20%.`;
+    }
+    if (isDesign) {
+      return `Creative UI/UX Designer dedicated to crafting intuitive, visually stunning digital interfaces that elevate user experiences. Expert in translating user research and wireframe schemas into polished, responsive product designs.`;
+    }
+    if (isManager) {
+      return `Strategic Project Manager with extensive experience coordinating cross-functional teams and managing product launch lifecycles. Adept at optimizing operational workflows and delivering high-quality deliverables within timelines.`;
+    }
+    
+    return `Results-driven ${jobTitle || "Software Engineer"} with a proven track record of optimizing application performance and leading developer teams. Experienced in building scalable APIs and integrating third-party services. Passionate about engineering clean, maintainable code architectures that exceed client standards.`;
   }
 };
 
@@ -140,8 +155,26 @@ ${experience}
 `;
     return await askAI(prompt);
   } catch (error) {
-    console.warn("Ollama connection failed. Using simulated experience improvement.");
-    return `- Designed and deployed scalable RESTful APIs for ${jobTitle} operations, reducing server latency metrics by 25% and increasing throughput capacities.
+    console.warn("Ollama connection failed. Using dynamic simulated experience.");
+    const title = (jobTitle || "").toLowerCase();
+    
+    if (title.includes("market") || title.includes("sale")) {
+      return `- Devised and executed data-driven marketing campaigns, expanding brand lead generation by 35% within 6 months.
+- Managed a monthly advertising spend budget of $5k, maximizing ROI metrics and reducing cost-per-click values by 15%.
+- Collaborated with content writers to optimize SEO keywords, boosting monthly organic web traffic volumes.`;
+    }
+    if (title.includes("design") || title.includes("ux") || title.includes("ui")) {
+      return `- Designed modern visual wireframes and high-fidelity prototype layouts, decreasing user drop-off statistics by 20%.
+- Conducted user testing interviews with 15+ participants, applying feedback observations to improve workflow navigations.
+- Partnered with development teams to ensure pixel-perfect CSS styling integrations across device screen sizes.`;
+    }
+    if (title.includes("manager") || title.includes("lead")) {
+      return `- Led a cross-functional squad of 8 developers and designers to launch the company's flagship web application.
+- Implemented agile sprint boards and stand-up meetings, accelerating project delivery schedules by 18%.
+- Defined critical roadmap goals and aligned stakeholders around operational scope specifications.`;
+    }
+
+    return `- Designed and deployed scalable RESTful APIs for ${jobTitle || "Software Engineer"} operations, reducing server latency metrics by 25% and increasing throughput capacities.
 - Refactored legacy UI components using React, increasing overall rendering speeds and improving client satisfaction ratings by 15%.
 - Collaborated with product teams to design robust database schema designs, facilitating seamless transaction integrations.`;
   }
@@ -161,8 +194,28 @@ ${jobDescription}
 `;
     return await askAI(prompt);
   } catch (error) {
-    console.warn("Ollama connection failed. Using simulated skills suggestions.");
-    return `Suggested Skills:\n- React\n- Node.js\n- TypeScript\n- MongoDB\n- Docker\n- RESTful APIs\n- AWS (S3/EC2)\n- CI/CD Pipelines`;
+    console.warn("Ollama connection failed. Using dynamic simulated skills.");
+    const jd = (jobDescription || "").toLowerCase();
+    const suggestions = ["Suggested Skills:"];
+    
+    if (jd.includes("react") || jd.includes("vue") || jd.includes("frontend") || jd.includes("html") || jd.includes("css")) {
+      suggestions.push("- React.js", "- TypeScript", "- Tailwind CSS", "- Redux Toolkit", "- Jest Testing");
+    }
+    if (jd.includes("node") || jd.includes("express") || jd.includes("backend") || jd.includes("api") || jd.includes("sql")) {
+      suggestions.push("- Node.js", "- Express.js", "- PostgreSQL", "- Docker Containers", "- Redis Cache");
+    }
+    if (jd.includes("python") || jd.includes("data") || jd.includes("ml") || jd.includes("analytics")) {
+      suggestions.push("- Python Programming", "- Pandas / NumPy", "- SQL Querying", "- Tableau Data Viz", "- Machine Learning (Scikit-Learn)");
+    }
+    if (jd.includes("market") || jd.includes("sale") || jd.includes("seo") || jd.includes("social")) {
+      suggestions.push("- Google Analytics", "- SEO & SEM Strategy", "- Content Marketing", "- CRM (HubSpot)", "- Social Media Ads");
+    }
+    
+    if (suggestions.length === 1) {
+      suggestions.push("- TypeScript", "- React & Node.js", "- Git Version Control", "- RESTful API Design", "- Agile Methodologies");
+    }
+    
+    return suggestions.join("\n");
   }
 };
 
@@ -351,10 +404,66 @@ Return ONLY valid JSON matching this format (do not include markdown wrapping or
     console.warn("Ollama offline or invalid JSON. Using simulated resume fallback.");
     
     const isFrontend = /front|react|angular|vue|css|html|ui/i.test(promptText);
-    const role = isFrontend ? "Senior Frontend Developer" : "Senior Backend Engineer";
-    const skills = isFrontend 
-      ? ["React", "TypeScript", "Tailwind CSS", "JavaScript", "HTML5", "Redux", "Jest"]
-      : ["Node.js", "Express", "MongoDB", "PostgreSQL", "Docker", "Redis", "REST APIs"];
+    const isMarketing = /market|sale|seo|ad/i.test(promptText);
+    const isDesign = /design|ux|ui|creative/i.test(promptText);
+    
+    let role = "Senior Backend Engineer";
+    let skills = ["Node.js", "Express", "MongoDB", "PostgreSQL", "Docker", "Redis", "REST APIs"];
+    let company = "Stripe";
+    let desc = [
+      `Engineered core platform services for payment processing, increasing throughput metrics by 30%.`,
+      `Collaborated with team developers to launch secure API tokens, reducing checkout transaction failures.`,
+      `Participated in code reviews and refactored legacy database models to expand unit test coverage.`
+    ];
+    let project = {
+      title: "Distributed Logging API",
+      description: "A fast, open-source logging middleware designed to capture and index request traffic profiles in real-time.",
+      technologies: ["Node.js", "Express", "MongoDB"]
+    };
+
+    if (isFrontend) {
+      role = "Senior Frontend Developer";
+      skills = ["React", "TypeScript", "Tailwind CSS", "JavaScript", "HTML5", "Redux", "Jest"];
+      company = "Stripe";
+      desc = [
+        `Built modern visual dashboard pages using React, decreasing initial page loading speeds by 25%.`,
+        `Collaborated with design teams to launch responsive web interfaces, improving user session durations.`,
+        `Participated in refactoring state handlers using Redux, simplifying client data synchronization.`
+      ];
+      project = {
+        title: "Personal Dashboard UI",
+        description: "A fast, open-source dashboard metrics parser built to structure and aggregate API metrics in real-time.",
+        technologies: ["React", "Tailwind", "Vite"]
+      };
+    } else if (isMarketing) {
+      role = "Digital Marketing Manager";
+      skills = ["Google Analytics", "SEO & SEM Strategy", "Content Marketing", "CRM Platforms", "Social Ads"];
+      company = "Growth Marketing Inc.";
+      desc = [
+        `Devised and executed target advertising strategies, increasing customer acquisition rates by 35%.`,
+        `Managed monthly marketing budgets of $10,000, achieving a 2.5x increase in conversion metrics.`,
+        `Monitored SEO search metrics and rewrote content parameters to double organic site traffic.`
+      ];
+      project = {
+        title: "Growth Funnel Optimizer",
+        description: "An analytics aggregator to track customer actions and minimize purchase funnel drop-out rates.",
+        technologies: ["Google Analytics", "HubSpot", "SEO Keywords"]
+      };
+    } else if (isDesign) {
+      role = "Lead Product UI/UX Designer";
+      skills = ["Figma", "User Research", "Wireframing", "Prototyping", "Design Systems", "HTML/CSS"];
+      company = "Creative Studio Co.";
+      desc = [
+        `Designed intuitive, responsive user dashboards that decreased customer onboarding times by 40%.`,
+        `Conducted user testing surveys with 20+ focus participants, applying results to simplify navigations.`,
+        `Created and published a cross-product design library system, cutting frontend build durations.`
+      ];
+      project = {
+        title: "Universal Design Toolkit",
+        description: "A comprehensive library of components, typography guidelines, and custom icons for visual projects.",
+        technologies: ["Figma", "Design System", "CSS Variables"]
+      };
+    }
     
     return {
       personalInfo: {
@@ -380,21 +489,17 @@ Return ONLY valid JSON matching this format (do not include markdown wrapping or
       ],
       experience: [
         {
-          company: "Stripe",
+          company,
           position: role,
           location: "San Francisco, CA",
           startDate: "2022-08-01",
           endDate: "2025-01-15",
           currentlyWorking: false,
-          description: [
-            `Engineered core platform services for payment processing, increasing throughput metrics by 30%.`,
-            `Collaborated with design teams to launch responsive web interfaces, improving user session durations.`,
-            `Participated in code reviews and refactored legacy microservices to improve test coverage scores.`
-          ]
+          description: desc
         },
         {
           company: "Tech Startups Inc.",
-          position: isFrontend ? "Frontend Developer" : "Software Engineer",
+          position: role.includes("Senior") ? role.replace("Senior ", "") : role,
           location: "Remote",
           startDate: "2020-07-01",
           endDate: "2022-07-15",
@@ -405,13 +510,7 @@ Return ONLY valid JSON matching this format (do not include markdown wrapping or
           ]
         }
       ],
-      projects: [
-        {
-          title: "Personal Dashboard API",
-          description: "A fast, open-source dashboard metrics parser built to structure and aggregate API metrics in real-time.",
-          technologies: isFrontend ? ["React", "Tailwind", "Vite"] : ["Node.js", "Express", "MongoDB"]
-        }
-      ]
+      projects: [project]
     };
   }
 };
