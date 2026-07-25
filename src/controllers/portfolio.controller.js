@@ -6,7 +6,7 @@ import { generateQRCode } from "../services/qr.service.js";
 
 export const createPortfolio = async(req,res)=>{
   try {
-    const {resumeId}=req.body;
+    const {resumeId, theme = "auto"}=req.body;
     if (!resumeId) {
       return res.status(400).json({
         success: false,
@@ -22,6 +22,7 @@ export const createPortfolio = async(req,res)=>{
     let portfolio = await Portfolio.findOne({ resume: resumeId });
     if (portfolio) {
       portfolio.qrCode = qr;
+      if (theme) portfolio.theme = theme;
       await portfolio.save();
     } else {
       portfolio = await Portfolio.create({
@@ -29,6 +30,7 @@ export const createPortfolio = async(req,res)=>{
         resume: resumeId,
         slug,
         qrCode: qr,
+        theme,
         isPublic: true
       });
     }
@@ -70,6 +72,7 @@ export const getPublicResume = async (req, res) => {
       resume: portfolio.resume,
       user: portfolio.user,
       qrCode: portfolio.qrCode,
+      theme: portfolio.theme || "auto",
       views: portfolio.views,
     });
   } catch (err) {
