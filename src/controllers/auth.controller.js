@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import { env } from "../config/env.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -154,6 +155,59 @@ export const logout = async (req, res) => {
   } catch (error) {
     console.error(error);
 
+    res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
+  }
+};
+
+/**
+ * @desc Refresh Access Token using httpOnly refresh cookie
+ * @route POST /api/auth/refresh-token
+ * @access Public (uses cookie, not Bearer token)
+ */
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const token = req.cookies?.refreshToken;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "No refresh token provided.",
+      });
+    }
+
+    // Verify the refresh token
+    let decoded;
+    try {
+      decoded = (await import("jsonwebtoken")).default.verify(token, env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired refresh token.",
+      });
+    }
+
+    // Find the user and check that the stored refresh token matches
+    const user = await User.findById(decoded.id).select("+refreshToken");
+
+    if (!user || user.refreshToken !== token) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token is no longer valid.",
+      });
+    }
+
+    // Issue a new access token
+    const newAccessToken = generateAccessToken(user._id);
+
+    res.json({
+      success: true,
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    console.error("Refresh token error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error.",
