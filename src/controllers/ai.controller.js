@@ -149,10 +149,32 @@ export const generateResumeFromPromptController = catchAsync(async (req, res) =>
     });
   }
 
-  const result = await generateResumeFromPrompt(prompt);
+  try {
+    const result = await generateResumeFromPrompt(prompt);
 
-  res.status(200).json({
-    success: true,
-    resume: result,
-  });
+    res.status(200).json({
+      success: true,
+      resume: result,
+    });
+  } catch (error) {
+    console.error("AI Generate Error:", error.message);
+
+    // Provide user-friendly error messages based on error type
+    let userMessage = "Failed to generate resume with AI.";
+
+    if (error.message?.includes("Ollama service is not running")) {
+      userMessage = "Ollama is not running. Please start Ollama on your computer first.";
+    } else if (error.message?.includes("no models are installed")) {
+      userMessage = "No AI models installed. Run 'ollama pull gemma' in your terminal.";
+    } else if (error.message?.includes("Failed to parse")) {
+      userMessage = "AI returned invalid data. Please try again with a simpler prompt.";
+    } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      userMessage = "AI request timed out. The model may be loading — please try again.";
+    }
+
+    res.status(500).json({
+      success: false,
+      message: userMessage,
+    });
+  }
 });
