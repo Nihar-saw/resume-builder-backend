@@ -36,6 +36,11 @@ const portfolioSchema = new mongoose.Schema(
 
     qrCode:{
         type:String
+    },
+
+    theme:{
+        type:String,
+        default:"auto"
     }
 
 },
