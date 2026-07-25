@@ -270,20 +270,44 @@ Return ONLY valid JSON matching this format (do not include markdown wrapping or
 }
 `;
 
-  const aiResponse = await askAI(prompt);
-  let cleanJson = aiResponse.trim();
-  if (cleanJson.startsWith("```")) {
-    const lines = cleanJson.split("\n");
-    if (lines[0].includes("```")) {
-      cleanJson = lines.slice(1, -1).join("\n").trim();
+  const maxRetries = 2;
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const aiResponse = await askAI(prompt);
+      let cleanJson = aiResponse.trim();
+
+      // Strategy 1: Strip markdown code fences (```json ... ``` or ``` ... ```)
+      const fenceMatch = cleanJson.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
+      if (fenceMatch) {
+        cleanJson = fenceMatch[1].trim();
+      }
+
+      // Strategy 2: Extract the outermost { ... } block
+      const jsonStart = cleanJson.indexOf("{");
+      const jsonEnd = cleanJson.lastIndexOf("}");
+      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+        cleanJson = cleanJson.substring(jsonStart, jsonEnd + 1);
+      }
+
+      // Strategy 3: Fix common LLM JSON issues before parsing
+      // Remove trailing commas before } or ]
+      cleanJson = cleanJson.replace(/,\s*([}\]])/g, "$1");
+
+      return JSON.parse(cleanJson);
+    } catch (parseError) {
+      lastError = parseError;
+      console.error(`AI resume generation attempt ${attempt + 1} failed:`, parseError.message);
+      if (attempt < maxRetries) {
+        // Wait briefly before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
     }
   }
 
-  const jsonStart = cleanJson.indexOf("{");
-  const jsonEnd = cleanJson.lastIndexOf("}");
-  if (jsonStart !== -1 && jsonEnd !== -1) {
-    cleanJson = cleanJson.substring(jsonStart, jsonEnd + 1);
-  }
-
-  return JSON.parse(cleanJson);
+  throw new Error(
+    `Failed to parse AI-generated resume after ${maxRetries + 1} attempts. ` +
+    `The AI model may be producing invalid JSON. Error: ${lastError?.message || "Unknown"}`
+  );
 };
