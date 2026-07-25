@@ -5,6 +5,7 @@ import {
   logout,
   getMe,
   updateProfile,
+  refreshAccessToken,
 } from "../controllers/auth.controller.js";
 
 import protect from "../middleware/auth.js";
@@ -20,6 +21,9 @@ router.post("/register", register);
 
 // Login
 router.post("/login", login);
+
+// Refresh Access Token (public — uses httpOnly cookie)
+router.post("/refresh-token", refreshAccessToken);
 
 // Logout
 router.post("/logout", protect, logout);
