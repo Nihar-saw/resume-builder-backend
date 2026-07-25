@@ -5,18 +5,15 @@ const educationSchema = new mongoose.Schema(
     school: {
       type: String,
       required: true,
-      trim: true,
     },
 
     degree: {
       type: String,
       required: true,
-      trim: true,
     },
 
     fieldOfStudy: {
       type: String,
-      trim: true,
     },
 
     startDate: Date,
@@ -35,13 +32,11 @@ const experienceSchema = new mongoose.Schema(
     company: {
       type: String,
       required: true,
-      trim: true,
     },
 
     position: {
       type: String,
       required: true,
-      trim: true,
     },
 
     location: String,
