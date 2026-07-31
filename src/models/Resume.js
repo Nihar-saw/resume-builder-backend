@@ -96,18 +96,7 @@ const resumeSchema = new mongoose.Schema(
       default: "Untitled Resume",
     },
 
-    template: {
-      type: String,
-      default: "modern",
-      enum: [
-        "modern",
-        "minimal",
-        "professional",
-        "creative",
-        "executive",
-      ],
-    },
-    
+
     currentVersion: {
       type: Number,
       default: 1
@@ -157,14 +146,17 @@ const resumeSchema = new mongoose.Schema(
       ],
     },
     template: {
-    type: String,
-    enum: [
+      type: String,
+      enum: [
         "modern",
         "classic",
         "minimal",
-        "creative"
-    ],
-    default: "modern"
+        "creative",
+        "corporate",
+        "elegant",
+        "tech"
+      ],
+      default: "modern"
     },
     atsScore: {
       type: Number,
