@@ -14,4 +14,6 @@ export const env = {
   OLLAMA_URL: process.env.OLLAMA_URL,
 
   OLLAMA_MODEL: process.env.OLLAMA_MODEL,
+
+  GROQ_API_KEY: process.env.GROQ_API_KEY,
 };

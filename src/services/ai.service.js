@@ -1,5 +1,6 @@
 import ollama from "../config/ollama.js";
 import { env } from "../config/env.js";
+import axios from "axios";
 
 export const askAI = async (prompt) => {
   let model = env.OLLAMA_MODEL || "gemma";
@@ -33,6 +34,7 @@ export const askAI = async (prompt) => {
   const { data } = await ollama.post("/api/chat", {
     model,
     stream: false,
+    format: "json",
     messages: [
       {
         role: "user",
@@ -42,6 +44,39 @@ export const askAI = async (prompt) => {
   });
 
   return data.message.content;
+};
+
+export const askGroq = async (prompt) => {
+  if (!env.GROQ_API_KEY || env.GROQ_API_KEY === "your_groq_api_key_here") {
+    throw new Error("Groq API key is not configured. Please add GROQ_API_KEY to your .env file.");
+  }
+
+  const response = await axios.post(
+    "https://api.groq.com/openai/v1/chat/completions",
+    {
+      model: "llama3-70b-8192",
+      stream: false,
+      messages: [
+        {
+          role: "system",
+          content: "You are a highly skilled professional resume writer. Always output strictly valid JSON as requested, with no markdown formatting or additional text.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${env.GROQ_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      timeout: 120000, // 2 minutes timeout for external API
+    }
+  );
+
+  return response.data.choices[0].message.content;
 };
 
 export const parseResume = async (resumeText) => {
@@ -270,44 +305,39 @@ Return ONLY valid JSON matching this format (do not include markdown wrapping or
 }
 `;
 
-  const maxRetries = 2;
-  let lastError = null;
+  const maxRetries = 0;
+  
+  const aiResponse = await askGroq(prompt);
+  if (!aiResponse) {
+    throw new Error("The AI model returned an empty response. Please try again.");
+  }
+  let cleanJson = aiResponse.trim();
 
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    try {
-      const aiResponse = await askAI(prompt);
-      let cleanJson = aiResponse.trim();
-
-      // Strategy 1: Strip markdown code fences (```json ... ``` or ``` ... ```)
-      const fenceMatch = cleanJson.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
-      if (fenceMatch) {
-        cleanJson = fenceMatch[1].trim();
-      }
-
-      // Strategy 2: Extract the outermost { ... } block
-      const jsonStart = cleanJson.indexOf("{");
-      const jsonEnd = cleanJson.lastIndexOf("}");
-      if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
-        cleanJson = cleanJson.substring(jsonStart, jsonEnd + 1);
-      }
-
-      // Strategy 3: Fix common LLM JSON issues before parsing
-      // Remove trailing commas before } or ]
-      cleanJson = cleanJson.replace(/,\s*([}\]])/g, "$1");
-
-      return JSON.parse(cleanJson);
-    } catch (parseError) {
-      lastError = parseError;
-      console.error(`AI resume generation attempt ${attempt + 1} failed:`, parseError.message);
-      if (attempt < maxRetries) {
-        // Wait briefly before retrying
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-    }
+  // Strategy 1: Strip markdown code fences (```json ... ``` or ``` ... ```)
+  const fenceMatch = cleanJson.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
+  if (fenceMatch) {
+    cleanJson = fenceMatch[1].trim();
   }
 
-  throw new Error(
-    `Failed to parse AI-generated resume after ${maxRetries + 1} attempts. ` +
-    `The AI model may be producing invalid JSON. Error: ${lastError?.message || "Unknown"}`
-  );
+  // Strategy 2: Extract the outermost { ... } block
+  const jsonStart = cleanJson.indexOf("{");
+  const jsonEnd = cleanJson.lastIndexOf("}");
+  if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+    cleanJson = cleanJson.substring(jsonStart, jsonEnd + 1);
+  }
+
+  // Strategy 3: Fix common LLM JSON issues before parsing
+  // Remove trailing commas before } or ]
+  cleanJson = cleanJson.replace(/,\s*([}\]])/g, "$1");
+
+  try {
+    return JSON.parse(cleanJson);
+  } catch (parseError) {
+    console.error("AI resume generation JSON parse failed:", parseError.message);
+    console.error("Raw response was:", cleanJson);
+    throw new Error(
+      `Failed to parse AI-generated resume. ` +
+      `The AI model produced invalid JSON. Error: ${parseError.message}`
+    );
+  }
 };
