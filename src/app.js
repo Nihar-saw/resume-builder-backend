@@ -5,9 +5,8 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 
+// Routes
 import authRoutes from "./routes/auth.routes.js";
-import notFound from "./middleware/notFound.js";
-import errorHandler from "./middleware/errorHandler.js";
 import resumeRoutes from "./routes/resume.routes.js";
 import versionRoutes from "./routes/version.routes.js";
 import atsRoutes from "./routes/ats.routes.js";
@@ -22,66 +21,70 @@ import emailRoutes from "./routes/email.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import portfolioRoutes from "./routes/portfolio.routes.js";
 
+// Middleware
+import notFound from "./middleware/notFound.js";
+import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
-  process.env.CLIENT_URL,
-  /\.vercel\.app$/
+  "https://resume-builder-steel-alpha.vercel.app",
+  "https://resume-builder-6iv4fyvq5-nihar-saws-projects.vercel.app",
 ];
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
 
 app.use(helmet());
 app.use(compression());
-app.use(cookieParser());
-
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ limit: "10mb", extended: true }));
-
 app.use(morgan("dev"));
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(cookieParser());
+
 app.get("/", (req, res) => {
-  res.json({
+  res.status(200).json({
     success: true,
-    message: "Resume Builder Backend API",
+    message: "Resume Builder Backend is Running 🚀",
   });
 });
 
-// Routes
+// API Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/portfolio", portfolioRoutes);
-app.use("/api/email", emailRoutes);
-app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/resume", resumeRoutes);
 app.use("/api/version", versionRoutes);
 app.use("/api/ats", atsRoutes);
-app.use("/api/ai", aiRoutes);
 app.use("/api/parser", parserRoutes);
-app.use("/api/review", reviewRoutes);
+app.use("/api/ai", aiRoutes);
 app.use("/api/job-match", jobMatchRoutes);
 app.use("/api/pdf", pdfRoutes);
 app.use("/api/docx", docxRoutes);
 app.use("/api/templates", templateRoutes);
+app.use("/api/review", reviewRoutes);
+app.use("/api/email", emailRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/portfolio", portfolioRoutes);
 
-
+// 404 Handler
 app.use(notFound);
 
+// Error Handler
 app.use(errorHandler);
-
-// 404 Route
-app.use("*path", (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
 
 export default app;
