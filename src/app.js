@@ -27,29 +27,35 @@ import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://resume-builder-steel-alpha.vercel.app",
-  "https://resume-builder-6iv4fyvq5-nihar-saws-projects.vercel.app",
-];
+// --- CORS ---
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin) return callback(null, true);
+    const allowed =
+      origin === "http://localhost:5173" ||
+      origin === "http://localhost:3000" ||
+      origin.endsWith(".vercel.app") ||
+      origin === process.env.CLIENT_URL;
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+    if (allowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
+// Handle OPTIONS preflight for ALL routes BEFORE any other middleware
+app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
 
-app.use(helmet());
+// --- Other middleware ---
+
 app.use(compression());
 app.use(morgan("dev"));
 
