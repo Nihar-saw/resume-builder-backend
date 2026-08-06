@@ -6,6 +6,8 @@ import {
   getMe,
   updateProfile,
   refreshAccessToken,
+  firebaseLogin,
+  setPassword,
 } from "../controllers/auth.controller.js";
 
 import protect from "../middleware/auth.js";
@@ -22,6 +24,9 @@ router.post("/register", register);
 // Login
 router.post("/login", login);
 
+// Firebase Social Login (Google / GitHub)
+router.post("/firebase", firebaseLogin);
+
 // Refresh Access Token (public — uses httpOnly cookie)
 router.post("/refresh-token", refreshAccessToken);
 
@@ -33,5 +38,8 @@ router.get("/me", protect, getMe);
 
 // Update Profile
 router.put("/profile", protect, updateProfile);
+
+// Configure Password for Google / GitHub Users
+router.post("/set-password", protect, setPassword);
 
 export default router;

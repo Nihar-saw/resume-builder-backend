@@ -29,9 +29,26 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, "Password is required"],
+      // Not required — Firebase users won't have a password
       minlength: 6,
       select: false,
+    },
+
+    firebaseUid: {
+      type: String,
+      sparse: true,
+      unique: true,
+    },
+
+    authProvider: {
+      type: String,
+      enum: ["local", "google", "github"],
+      default: "local",
+    },
+
+    isPasswordSet: {
+      type: Boolean,
+      default: false,
     },
 
     avatar: {
@@ -67,7 +84,12 @@ const userSchema = new mongoose.Schema(
 
 // Hash password before saving
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) {
+  if (this.isModified("password") && this.password) {
+    this.isPasswordSet = true;
+  }
+
+  // Skip if password is not set (Firebase users) or not modified
+  if (!this.password || !this.isModified("password")) {
     return;
   }
 
@@ -92,4 +114,4 @@ userSchema.methods.toJSON = function () {
 
 const User = mongoose.model("User", userSchema);
 
-export default User;
+export default User;
