@@ -50,8 +50,7 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// Handle OPTIONS preflight for ALL routes BEFORE any other middleware
-app.options("/{*path}", cors(corsOptions));
+// Enable CORS for all routes (automatically handles preflight OPTIONS requests)
 app.use(cors(corsOptions));
 
 // --- Other middleware ---
@@ -59,8 +58,8 @@ app.use(cors(corsOptions));
 app.use(compression());
 app.use(morgan("dev"));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use(cookieParser());
 
