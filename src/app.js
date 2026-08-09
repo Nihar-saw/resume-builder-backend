@@ -28,21 +28,26 @@ import errorHandler from "./middleware/errorHandler.js";
 const app = express();
 
 // --- CORS ---
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, curl)
     if (!origin) return callback(null, true);
 
-    const allowed =
-      origin === "http://localhost:5173" ||
-      origin === "http://localhost:3000" ||
+    if (
+      allowedOrigins.includes(origin) ||
       origin.endsWith(".vercel.app") ||
-      origin === process.env.CLIENT_URL;
-
-    if (allowed) {
+      origin.endsWith(".onrender.com")
+    ) {
       callback(null, true);
     } else {
-      callback(new Error(`CORS: origin ${origin} not allowed`));
+      console.warn(`CORS blocked: ${origin}`);
+      callback(null, false);
     }
   },
   credentials: true,
@@ -50,7 +55,10 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// Enable CORS for all routes (automatically handles preflight OPTIONS requests)
+// Handle preflight OPTIONS requests explicitly (runs before any other middleware)
+app.options("*", cors(corsOptions));
+
+// Enable CORS for all routes
 app.use(cors(corsOptions));
 
 // --- Other middleware ---
