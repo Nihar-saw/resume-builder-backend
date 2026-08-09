@@ -71,8 +71,7 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-// Handle preflight requests before any route or auth middleware runs.
-app.options("*", cors(corsOptions));
+// Handle CORS & preflight requests for all routes
 app.use(cors(corsOptions));
 
 // --- Other middleware ---
