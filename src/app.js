@@ -27,52 +27,43 @@ import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 
-// --- CORS ---
-const allowedOrigins = new Set(
-  [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    process.env.CLIENT_URL,
-  ].filter(Boolean)
-);
+// --- CORS Middleware ---
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
 
-const isAllowedOrigin = (origin) => {
-  if (!origin) return true;
+  if (origin) {
+    try {
+      const { hostname } = new URL(origin);
+      const isAllowed =
+        hostname === "localhost" ||
+        hostname.endsWith(".vercel.app") ||
+        hostname.endsWith(".onrender.com") ||
+        origin === process.env.CLIENT_URL;
 
-  try {
-    const { hostname } = new URL(origin);
-
-    return (
-      allowedOrigins.has(origin) ||
-      hostname === "localhost" ||
-      hostname.endsWith(".vercel.app") ||
-      hostname.endsWith(".onrender.com")
-    );
-  } catch {
-    return allowedOrigins.has(origin);
+      if (isAllowed) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+        res.setHeader("Access-Control-Allow-Credentials", "true");
+        res.setHeader(
+          "Access-Control-Allow-Methods",
+          "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        );
+        res.setHeader(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization, X-Requested-With"
+        );
+      }
+    } catch (err) {
+      console.error("CORS origin parsing error:", err);
+    }
   }
-};
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (isAllowedOrigin(origin)) {
-      return callback(null, true);
-    }
+  // Instantly handle preflight OPTIONS requests
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
 
-    if (origin) {
-      console.warn(`CORS blocked: ${origin}`);
-    }
-
-    return callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  optionsSuccessStatus: 204,
-};
-
-// Handle CORS & preflight requests for all routes
-app.use(cors(corsOptions));
+  next();
+});
 
 // --- Other middleware ---
 
